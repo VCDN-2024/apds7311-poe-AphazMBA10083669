@@ -1,0 +1,48 @@
+version: 2.1
+
+executors:
+  sonar-executor:
+    docker:
+      - image: circleci/node:16.13.1
+    working_directory: ~/repo
+
+jobs:
+  install-dependencies:
+    executor: sonar-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Node.js Dependencies
+          command: npm install
+
+  run-sonar-scan:
+    executor: sonar-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Sonar Scanner
+          command: npm install -g sonarqube-scanner
+      - run:
+          name: Run SonarQube Scan
+          command: |
+            sonar-scanner \
+              -Dsonar.projectKey=apds-poe \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.login=ad9938bc3d8d6f557eef622e727bf5ae880e5f04
+
+workflows:
+  version: 2
+  sonar-workflow:
+    triggers:
+      - schedule:
+          cron: "0 12 * * *" # Runs daily at 12 PM UTC (adjust as needed)
+          filters:
+            branches:
+              only:
+                - main # Only run on the `main` branch
+    jobs:
+      - install-dependencies
+      - run-sonar-scan:
+          requires:
+            - install-dependencies
