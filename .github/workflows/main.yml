@@ -34,9 +34,15 @@ jobs:
 workflows:
   version: 2
   sonar-workflow:
+    triggers:
+      - schedule:
+          cron: "0 12 * * *" # Runs daily at 12 PM UTC (adjust as needed)
+          filters:
+            branches:
+              only:
+                - main # Only run on the `main` branch
     jobs:
       - install-dependencies
       - run-sonar-scan:
           requires:
             - install-dependencies
-
